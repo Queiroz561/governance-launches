@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-governance_launches = "48PiGx1hU4qEh5CMnmcasqm7LBeYCPkM9myytErpqv2j"
+governance_launches = "o9bztnYupydDJ4gHRi8H24f5cmKwTtpZuvzLrWEY8Et"
 
 [registry]
 url = "https://api.apr.dev"
