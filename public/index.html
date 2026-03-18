@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Governance Launches · Testing UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@solana/web3.js@1.95.0/lib/index.iife.min.js"></script>
+<style>
+:root {
+  --bg: #050709;
+  --surface: #0c0f15;
+  --card: #0f1318;
+  --card-h: #131822;
+  --border: #1c2336;
+  --border-h: #2a3352;
+  --accent: #00e87a;
+  --accent-dim: rgba(0,232,122,0.10);
+  --accent-glow: rgba(0,232,122,0.22);
+  --purple: #8b5cf6;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --text: #e1e7f0;
+  --t2: #8896b0;
+  --t3: #4a5568;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+  --r: 10px;
+  --rs: 6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border-h);border-radius:2px}
+.header{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
+.logo-mark{width:30px;height:30px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent)}
+.logo-name{font-weight:600;font-size:14px;letter-spacing:-0.3px}
+.logo-sub{font-size:10px;color:var(--t3);font-family:var(--mono)}
+.spacer{flex:1}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;font-family:var(--mono)}
+.badge-devnet{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:var(--amber)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rs);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover:not(:disabled){background:#00ff88;box-shadow:0 0 18px var(--accent-glow)}
+.btn-outline{background:transparent;border:1px solid var(--border-h);color:var(--t2)}
+.btn-outline:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:transparent;color:var(--t2);padding:5px 9px}
+.btn-ghost:hover{color:var(--text);background:var(--card-h)}
+.btn-danger{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.btn-danger:hover:not(:disabled){background:rgba(239,68,68,.18)}
+.btn-sm{padding:4px 10px;font-size:12px}
+#wallet-btn{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent)}
+#wallet-btn:hover{background:rgba(0,232,122,.2)}
+#wallet-btn.connected{border-color:var(--border-h);background:var(--card);color:var(--t2)}
+#wallet-btn.connected:hover{border-color:var(--red);color:var(--red)}
+.config-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cfg-label{font-size:11px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.cfg-input{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:6px 10px;color:var(--text);font-family:var(--mono);font-size:11px;flex:1;min-width:180px;max-width:340px;transition:border-color .15s}
+.cfg-input:focus{outline:none;border-color:var(--accent)}
+.cfg-input::placeholder{color:var(--t3)}
+.main{display:grid;grid-template-columns:330px 1fr;min-height:calc(100vh - 108px)}
+.sidebar{border-right:1px solid var(--border);padding:18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:calc(100vh - 108px)}
+.panel{padding:18px;overflow-y:auto;max-height:calc(100vh - 108px)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)}
+.card-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--t2);font-family:var(--mono)}
+.card-body{padding:14px}
+.mt-3{margin-top:12px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-label{font-size:12px;color:var(--t2)}
+.stat-value{font-family:var(--mono);font-size:11px;color:var(--text)}
+.stat-value.accent{color:var(--accent)}
+.treasury-amount{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--accent);text-align:center;padding:14px 0 2px}
+.treasury-label{text-align:center;font-size:11px;color:var(--t3);font-family:var(--mono);padding-bottom:10px}
+.proposal-item{padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.proposal-item:last-child{border-bottom:none}
+.proposal-item:hover{background:var(--card-h)}
+.proposal-item.sel{background:var(--accent-dim);border-left:2px solid var(--accent)}
+.prop-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.prop-id{font-family:var(--mono);font-size:10px;color:var(--t3)}
+.pstatus{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;font-family:var(--mono)}
+.s-active{background:rgba(0,232,122,.1);color:var(--accent);border:1px solid rgba(0,232,122,.3)}
+.s-executed{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.s-defeated{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.prop-desc{font-size:12px;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prop-meta{font-size:10px;color:var(--t3);font-family:var(--mono)}
+.vote-bar{display:flex;height:3px;border-radius:2px;background:var(--border);margin-top:6px;overflow:hidden}
+.vbar-for{background:var(--accent);transition:width .3s}
+.vbar-ag{background:var(--red);transition:width .3s}
+.tabs-nav{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:3px;margin-bottom:18px}
+.tab-btn{flex:1;padding:6px 8px;border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--t2);transition:all .15s}
+.tab-btn.active{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;color:var(--t2);margin-bottom:5px;font-weight:500}
+.form-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:8px 11px;color:var(--text);font-family:var(--mono);font-size:12px;transition:border-color .15s}
+.form-input:focus{outline:none;border-color:var(--accent)}
+.form-input::placeholder{color:var(--t3);font-size:11px}
+.form-hint{font-size:11px;color:var(--t3);margin-top:3px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.action-footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border);margin-top:14px}
+.vote-counts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.vcount{text-align:center;padding:10px;border-radius:var(--rs)}
+.vcount.for{background:rgba(0,232,122,.07);border:1px solid rgba(0,232,122,.2)}
+.vcount.ag{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2)}
+.vnum{font-family:var(--mono);font-size:18px;font-weight:700}
+.vnum.for{color:var(--accent)}
+.vnum.ag{color:var(--red)}
+.vlabel{font-size:10px;color:var(--t3);margin-top:2px}
+.preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;display:none}
+.preview.show{display:block}
+.prev-title{font-size:14px;font-weight:500;margin-bottom:6px}
+.detail-label{font-size:10px;color:var(--t3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.detail-val{font-family:var(--mono);font-size:11px;color:var(--text);word-break:break-all;margin-bottom:6px}
+.pda-grid{background:rgba(0,232,122,.04);border:1px solid rgba(0,232,122,.15);border-radius:var(--r);padding:12px 14px}
+.pda-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)}
+.pda-row:last-child{border-bottom:none}
+.pda-k{font-size:11px;color:var(--t2)}
+.pda-v{font-family:var(--mono);font-size:10px;color:var(--accent)}
+.tx-log{position:fixed;bottom:0;right:0;width:360px;background:var(--surface);border:1px solid var(--border);border-bottom:none;border-right:none;border-radius:10px 0 0 0;z-index:200}
+.tx-log-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.tx-log-title{font-size:10px;font-weight:600;color:var(--t2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+.tx-count{background:var(--border);border-radius:10px;padding:1px 6px;font-size:10px}
+.tx-log-body{overflow-y:auto;max-height:200px;padding:6px}
+.tx-item{display:flex;align-items:flex-start;gap:8px;padding:5px 7px;border-radius:6px;margin-bottom:2px}
+.tx-item:hover{background:var(--card)}
+.tx-ico{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px}
+.ico-ok{background:rgba(0,232,122,.15);color:var(--accent)}
+.ico-err{background:rgba(239,68,68,.15);color:var(--red)}
+.ico-pend{background:rgba(245,158,11,.15);color:var(--amber)}
+.tx-content{flex:1}
+.tx-name{font-size:12px;font-weight:500}
+.tx-sig{font-family:var(--mono);font-size:10px;color:var(--t3)}
+.tx-sig a{color:var(--accent);text-decoration:none}
+.tx-sig a:hover{text-decoration:underline}
+.toast-wrap{position:fixed;top:74px;right:18px;z-index:1000;display:flex;flex-direction:column;gap:7px}
+.toast{padding:9px 14px;border-radius:var(--rs);font-size:13px;animation:sIn .2s ease;max-width:300px}
+@keyframes sIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+.t-ok{background:rgba(0,232,122,.13);border:1px solid rgba(0,232,122,.4);color:var(--accent)}
+.t-err{background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.4);color:var(--red)}
+.t-info{background:rgba(139,92,246,.13);border:1px solid rgba(139,92,246,.4);color:var(--purple)}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(0,232,122,.2);border-top-color:var(--accent);border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:24px 14px;color:var(--t3);font-size:12px}
+.wallet-info{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--t2)}
+.wallet-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+@media(max-width:780px){
+  .main{grid-template-columns:1fr}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border);max-height:none}
+  .tx-log{width:100%;border-radius:0}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo-mark">G</div>
+    <div>
+      <div class="logo-name">Governance Launches</div>
+      <div class="logo-sub">Testing UI</div>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <div id="wallet-balance" class="wallet-info" style="display:none">
+    <div class="wallet-dot"></div>
+    <span id="wallet-sol">—</span>
+  </div>
+  <div class="badge badge-devnet"><span class="dot"></span>DEVNET</div>
+  <button class="btn" id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+</header>
+
+<div class="config-bar">
+  <span class="cfg-label">Program ID</span>
+  <input class="cfg-input" id="cfg-pid" placeholder="Paste your deployed Program ID..." />
+  <span class="cfg-label">Token Mint</span>
+  <input class="cfg-input" id="cfg-mint" placeholder="Paste your token mint address..." />
+  <button class="btn btn-primary btn-sm" onclick="loadDAO()">⟳ Load DAO</button>
+  <button class="btn btn-outline btn-sm" onclick="doAirdrop()">🪂 Airdrop 2 SOL</button>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<div class="main">
+  <div class="sidebar">
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">DAO Config</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadDAO()">↻</button>
+      </div>
+      <div class="card-body" id="dao-state">
+        <div class="empty">Set Program ID and Token Mint above</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Treasury</span>
+        <code id="treasury-short" style="font-family:var(--mono);font-size:9px;color:var(--t3)"></code>
+      </div>
+      <div id="treasury-display">
+        <div class="treasury-amount">—</div>
+        <div class="treasury-label">SOL available</div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1;min-height:0">
+      <div class="card-header">
+        <span class="card-title">Proposals</span>
+        <span id="prop-count" style="font-family:var(--mono);font-size:11px;color:var(--t3)">0</span>
+      </div>
+      <div id="proposals-list">
+        <div class="empty">No proposals loaded</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="panel">
+
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="tab('init',this)">Initialize</button>
+      <button class="tab-btn" onclick="tab('deposit',this)">Deposit</button>
+      <button class="tab-btn" onclick="tab('propose',this)">Proposal</button>
+      <button class="tab-btn" onclick="tab('vote',this)">Vote</button>
+      <button class="tab-btn" onclick="tab('execute',this)">Execute</button>
+    </div>
+
+    <!-- Initialize -->
+    <div class="tab-pane active" id="tab-init">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Initialize DAO</span></div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--t2);margin-bottom:14px">Creates the DaoConfig and treasury PDA. Called once by the dev — requires the token mint to be configured above.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Quorum (basis points)</label>
+              <input class="form-input" id="i-quorum" type="number" value="500" min="1" max="10000">
+              <div class="form-hint">500 = 5% of supply · max 10000</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Voting period (seconds)</label>
+              <input class="form-input" id="i-period" type="number" value="259200" min="3600">
+              <div class="form-hint">259200 = 3 days · min: 3600 (1h)</div>
+            </div>
+          </div>
+          <div class="action-footer">
+            <div style="font-size:11px;color:var(--t2)">Authority: <span id="init-auth" style="font-family:var(--mono)">—</span></div>
+            <button class="btn btn-primary" onclick="doInitDao()">Initialize DAO</button>
+          </div>
+        </div>
+      </div>
+      <div class="pda-grid mt-3">
+        <div class="pda-row"><span class="pda-k">DaoConfig PDA</span><code id="pda-dao" class="pda-v">—</code></div>
+        <div class="pda-row"><span class="pda-k">Treasury PDA</span><code id="pda-treas" class="pda-v">—</code></div>
+      </div>
+    </div>
+
+    <!-- Deposit -->
+    <div class="tab-pane" id="tab-deposit">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Deposit SOL</span></div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--t2);margin-bottom:14px">Deposits SOL into the treasury. Any wallet can call this — simulates pump.fun fees arriving at the vault.</p>
+          <div class="form-group">
+            <label class="form-label">Amount (SOL)</label>
+            <input class="form-input" id="d-amount" type="number" value="0.1" step="0.01" min="0.001">
+            <div class="form-hint">1 SOL = 1,000,000,000 lamports</div>
+          </div>
+          <div class="action-footer">
+            <div style="font-size:11px;color:var(--t2)">Current treasury: <span id="d-tbal" style="color:var(--accent);font-family:var(--mono)">—</span></div>
+            <button class="btn btn-primary" onclick="doDeposit()">Deposit SOL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Proposal -->
+    <div class="tab-pane" id="tab-propose">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Create Proposal</span></div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--t2);margin-bottom:14px">Creates a funding proposal. Only the DAO authority can create proposals — you must be the dev who initialized the DAO.</p>
+          <div class="form-group">
+            <label class="form-label">Description (max 256 chars)</label>
+            <input class="form-input" id="p-desc" placeholder="e.g. 0.5 SOL for X marketing campaign" maxlength="256">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Destination label (max 32)</label>
+              <input class="form-input" id="p-label" placeholder="e.g. Marketing, Dev Fund, Burn" maxlength="32">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Amount (SOL)</label>
+              <input class="form-input" id="p-amount" type="number" value="0.1" step="0.01" min="0.001">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Destination address (Pubkey)</label>
+            <input class="form-input" id="p-dest" placeholder="Paste the destination wallet or program...">
+            <div class="form-hint">Use 11111111111111111111111111111111 to simulate a burn</div>
+          </div>
+          <div class="action-footer">
+            <div style="font-size:11px;color:var(--t2)">Next proposal: <span id="next-prop-id" style="color:var(--accent);font-family:var(--mono)">#—</span></div>
+            <button class="btn btn-primary" onclick="doCreateProposal()">Create Proposal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vote -->
+    <div class="tab-pane" id="tab-vote">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Cast Vote</span></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Proposal ID</label>
+            <input class="form-input" id="v-id" type="number" value="0" min="0" oninput="previewProposal(this.value,'vote')">
+          </div>
+          <div class="preview" id="vprev">
+            <div class="prev-title" id="vprev-desc">—</div>
+            <div style="margin-bottom:8px" id="vprev-status"></div>
+            <div class="vote-counts">
+              <div class="vcount for"><div class="vnum for" id="vprev-for">—</div><div class="vlabel">For</div></div>
+              <div class="vcount ag"><div class="vnum ag" id="vprev-ag">—</div><div class="vlabel">Against</div></div>
+            </div>
+            <div class="detail-label">Voting ends</div>
+            <div class="detail-val" id="vprev-end">—</div>
+          </div>
+          <div class="stat-row" style="margin-bottom:12px">
+            <span class="stat-label">Your token balance</span>
+            <span id="voter-bal" style="font-family:var(--mono);font-size:12px;color:var(--accent)">—</span>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-outline" onclick="doVote(true)" style="flex:1;justify-content:center;border-color:rgba(0,232,122,.4);color:var(--accent)">✓ Approve</button>
+            <button class="btn btn-danger" onclick="doVote(false)" style="flex:1;justify-content:center">✗ Reject</button>
+          </div>
+          <div class="form-hint" style="margin-top:6px">Vote weight = token balance at time of voting</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Execute -->
+    <div class="tab-pane" id="tab-execute">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Execute Proposal</span></div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--t2);margin-bottom:14px">Executes a proposal after the voting period ends. Any wallet can call this — permissionless by design.</p>
+          <div class="form-group">
+            <label class="form-label">Proposal ID</label>
+            <input class="form-input" id="e-id" type="number" value="0" min="0" oninput="previewProposal(this.value,'exec')">
+          </div>
+          <div class="preview" id="eprev">
+            <div class="prev-title" id="eprev-desc">—</div>
+            <div class="form-row" style="margin-top:8px">
+              <div>
+                <div class="detail-label">Destination</div>
+                <div class="detail-val" id="eprev-dest">—</div>
+              </div>
+              <div>
+                <div class="detail-label">Amount</div>
+                <div class="detail-val" id="eprev-amount" style="color:var(--accent)">—</div>
+              </div>
+            </div>
+            <div class="vote-counts">
+              <div class="vcount for"><div class="vnum for" id="eprev-for">—</div><div class="vlabel">For</div></div>
+              <div class="vcount ag"><div class="vnum ag" id="eprev-ag">—</div><div class="vlabel">Against</div></div>
+            </div>
+          </div>
+          <div class="action-footer">
+            <div style="font-size:11px;color:var(--t2)">Permissionless — any wallet can execute</div>
+            <button class="btn btn-primary" onclick="doExecute()">Execute Proposal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="tx-log">
+  <div class="tx-log-hdr" onclick="toggleLog()">
+    <span class="tx-log-title">TX Log <span id="tx-cnt" class="tx-count">0</span></span>
+    <span id="log-arrow" style="font-size:10px;color:var(--t3)">▲</span>
+  </div>
+  <div class="tx-log-body" id="tx-log-body">
+    <div class="empty" style="padding:14px">No transactions yet</div>
+  </div>
+</div>
+
+<script>
+const { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction, LAMPORTS_PER_SOL } = solanaWeb3;
+const TOKEN_PROGRAM = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+const ASSOC_PROGRAM = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJe1bRS');
+
+const app = { conn: new Connection('https://api.devnet.solana.com','confirmed'), wallet:null, programId:null, tokenMint:null, dao:null, proposals:[], txLog:[] };
+
+const enc = new TextEncoder(), dec2 = new TextDecoder();
+async function disc(name) { const h = await crypto.subtle.digest('SHA-256', enc.encode(`global:${name}`)); return new Uint8Array(h).slice(0,8); }
+function cat(...arrays) { const len=arrays.reduce((s,a)=>s+a.length,0); const r=new Uint8Array(len); let o=0; for(const a of arrays){r.set(a,o);o+=a.length;} return r; }
+const B = {
+  u16: n=>{const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;},
+  u64: n=>{const b=new Uint8Array(8);new DataView(b.buffer).setBigUint64(0,BigInt(n),true);return b;},
+  i64: n=>{const b=new Uint8Array(8);new DataView(b.buffer).setBigInt64(0,BigInt(n),true);return b;},
+  bool: v=>new Uint8Array([v?1:0]),
+  str: s=>{const e=enc.encode(s);const l=new Uint8Array(4);new DataView(l.buffer).setUint32(0,e.length,true);return cat(l,e);},
+  pk: p=>p.toBytes(),
+};
+
+function daoPDA()      { return PublicKey.findProgramAddressSync([enc.encode('dao'),      app.tokenMint.toBytes()], app.programId); }
+function treasuryPDA() { return PublicKey.findProgramAddressSync([enc.encode('treasury'), app.tokenMint.toBytes()], app.programId); }
+function proposalPDA(dao, id) { const ib=new Uint8Array(8);new DataView(ib.buffer).setBigUint64(0,BigInt(id),true); return PublicKey.findProgramAddressSync([enc.encode('proposal'),dao.toBytes(),ib],app.programId); }
+function votePDA(prop, voter) { return PublicKey.findProgramAddressSync([enc.encode('vote'),prop.toBytes(),voter.toBytes()],app.programId); }
+function ata(owner) { return PublicKey.findProgramAddressSync([owner.toBytes(),TOKEN_PROGRAM.toBytes(),app.tokenMint.toBytes()],ASSOC_PROGRAM)[0]; }
+
+function decodeDAO(data) {
+  const dv=new DataView(data.buffer,data.byteOffset); let o=8;
+  const authority =new PublicKey(data.slice(o,o+32));o+=32;
+  const tokenMint =new PublicKey(data.slice(o,o+32));o+=32;
+  const proposalCount   =Number(dv.getBigUint64(o,true));o+=8;
+  const quorumBps       =dv.getUint16(o,true);o+=2;
+  const votingPeriod    =Number(dv.getBigInt64(o,true));o+=8;
+  const totalDeposited  =Number(dv.getBigUint64(o,true));o+=8;
+  const totalDistributed=Number(dv.getBigUint64(o,true));o+=8;
+  return {authority,tokenMint,proposalCount,quorumBps,votingPeriod,totalDeposited,totalDistributed};
+}
+
+function decodeProposal(data) {
+  const dv=new DataView(data.buffer,data.byteOffset); let o=8;
+  const dao        =new PublicKey(data.slice(o,o+32));o+=32;
+  const proposer   =new PublicKey(data.slice(o,o+32));o+=32;
+  const destination=new PublicKey(data.slice(o,o+32));o+=32;
+  const amount     =Number(dv.getBigUint64(o,true));o+=8;
+  const votesFor   =Number(dv.getBigUint64(o,true));o+=8;
+  const votesAgainst=Number(dv.getBigUint64(o,true));o+=8;
+  const statusByte =data[o++];
+  const createdAt  =Number(dv.getBigInt64(o,true));o+=8;
+  const votingEndsAt=Number(dv.getBigInt64(o,true));o+=8;
+  const id         =Number(dv.getBigUint64(o,true));o+=8;
+  o++;
+  const dl=dv.getUint32(o,true);o+=4;
+  const description=dec2.decode(data.slice(o,o+dl));o+=dl;
+  const ll=dv.getUint32(o,true);o+=4;
+  const destinationLabel=dec2.decode(data.slice(o,o+ll));
+  return {dao,proposer,destination,amount,votesFor,votesAgainst,status:['Active','Executed','Defeated'][statusByte]||'Unknown',createdAt,votingEndsAt,id,description,destinationLabel};
+}
+
+async function connectWallet() {
+  if (app.wallet) {
+    app.wallet=null;
+    const btn=document.getElementById('wallet-btn');
+    btn.textContent='Connect Wallet'; btn.classList.remove('connected');
+    document.getElementById('wallet-balance').style.display='none';
+    document.getElementById('init-auth').textContent='—';
+    toast('Wallet disconnected','info'); return;
+  }
+  const p=window.phantom?.solana||window.solana;
+  if (!p) { toast('Phantom not detected — install at phantom.app','err'); return; }
+  try {
+    const r=await p.connect(); app.wallet=p;
+    const addr=r.publicKey.toBase58();
+    const btn=document.getElementById('wallet-btn');
+    btn.textContent=addr.slice(0,4)+'...'+addr.slice(-4); btn.classList.add('connected');
+    document.getElementById('init-auth').textContent=addr.slice(0,6)+'...'+addr.slice(-6);
+    document.getElementById('wallet-balance').style.display='flex';
+    await refreshWalletBalance();
+    toast('Connected: '+addr.slice(0,4)+'...'+addr.slice(-4),'ok');
+  } catch(e) { toast('Failed: '+e.message,'err'); }
+}
+
+async function refreshWalletBalance() {
+  if (!app.wallet) return;
+  const bal=await app.conn.getBalance(app.wallet.publicKey);
+  document.getElementById('wallet-sol').textContent=(bal/LAMPORTS_PER_SOL).toFixed(3)+' SOL';
+}
+
+async function loadDAO() {
+  const pid=document.getElementById('cfg-pid').value.trim();
+  const mint=document.getElementById('cfg-mint').value.trim();
+  if (!pid||!mint) { toast('Set Program ID and Token Mint first','err'); return; }
+  try { app.programId=new PublicKey(pid); app.tokenMint=new PublicKey(mint); }
+  catch(e) { toast('Invalid address: '+e.message,'err'); return; }
+  try {
+    const [dp]=daoPDA(), [tp]=treasuryPDA();
+    document.getElementById('pda-dao').textContent  =dp.toBase58().slice(0,8)+'...'+dp.toBase58().slice(-6);
+    document.getElementById('pda-treas').textContent=tp.toBase58().slice(0,8)+'...'+tp.toBase58().slice(-6);
+    document.getElementById('treasury-short').textContent=tp.toBase58().slice(0,6)+'...';
+    const tbal=await app.conn.getBalance(tp);
+    renderTreasury(tbal);
+    document.getElementById('d-tbal').textContent=(tbal/LAMPORTS_PER_SOL).toFixed(6)+' SOL';
+    const daoInfo=await app.conn.getAccountInfo(dp);
+    if (!daoInfo) {
+      document.getElementById('dao-state').innerHTML=`<div class="empty">DAO not initialized yet<br><span style="font-size:10px;margin-top:4px;display:block">Use the "Initialize" tab to create it</span></div>`;
+      document.getElementById('proposals-list').innerHTML='<div class="empty">No proposals</div>';
+      return;
+    }
+    app.dao=decodeDAO(new Uint8Array(daoInfo.data));
+    renderDAO(); await loadProposals(dp); toast('DAO loaded!','ok');
+  } catch(e) { toast('Load error: '+e.message,'err'); console.error(e); }
+}
+
+function renderTreasury(lamports) {
+  document.getElementById('treasury-display').innerHTML=`<div class="treasury-amount">${(lamports/LAMPORTS_PER_SOL).toFixed(6)}</div><div class="treasury-label">SOL · ${lamports.toLocaleString()} lamports</div>`;
+}
+
+function renderDAO() {
+  const d=app.dao;
+  document.getElementById('prop-count').textContent=d.proposalCount;
+  document.getElementById('next-prop-id').textContent='#'+d.proposalCount;
+  document.getElementById('dao-state').innerHTML=`
+    <div class="stat-row"><span class="stat-label">Authority</span><span class="stat-value">${d.authority.toBase58().slice(0,6)}...${d.authority.toBase58().slice(-5)}</span></div>
+    <div class="stat-row"><span class="stat-label">Quorum</span><span class="stat-value accent">${d.quorumBps/100}% of supply</span></div>
+    <div class="stat-row"><span class="stat-label">Voting period</span><span class="stat-value">${fmtDur(d.votingPeriod)}</span></div>
+    <div class="stat-row"><span class="stat-label">Total proposals</span><span class="stat-value accent">${d.proposalCount}</span></div>
+    <div class="stat-row"><span class="stat-label">Total deposited</span><span class="stat-value">${(d.totalDeposited/LAMPORTS_PER_SOL).toFixed(4)} SOL</span></div>
+    <div class="stat-row"><span class="stat-label">Total distributed</span><span class="stat-value">${(d.totalDistributed/LAMPORTS_PER_SOL).toFixed(4)} SOL</span></div>`;
+}
+
+async function loadProposals(dp) {
+  app.proposals=[];
+  for (let i=0;i<app.dao.proposalCount;i++) {
+    try { const [pp]=proposalPDA(dp,i); const info=await app.conn.getAccountInfo(pp); if(info) app.proposals.push({...decodeProposal(new Uint8Array(info.data)),pda:pp}); }
+    catch(e) { console.warn('proposal',i,e); }
+  }
+  renderProposals();
+}
+
+function renderProposals() {
+  const el=document.getElementById('proposals-list');
+  if (!app.proposals.length) { el.innerHTML='<div class="empty">No proposals yet</div>'; return; }
+  el.innerHTML=app.proposals.map(p=>{
+    const total=p.votesFor+p.votesAgainst;
+    const fp=total>0?Math.round(p.votesFor/total*100):0;
+    const sc={Active:'s-active',Executed:'s-executed',Defeated:'s-defeated'}[p.status];
+    const end=new Date(p.votingEndsAt*1000);
+    return `<div class="proposal-item" onclick="selectP(${p.id})">
+      <div class="prop-header"><span class="prop-id">#${p.id}</span><span class="pstatus ${sc}">${p.status}</span></div>
+      <div class="prop-desc">${p.description}</div>
+      <div class="prop-meta">${(p.amount/LAMPORTS_PER_SOL).toFixed(4)} SOL · ${p.destinationLabel} · ${end<new Date()?'Ended':'Ends '+fmtTimeLeft(end)}</div>
+      <div class="vote-bar"><div class="vbar-for" style="width:${fp}%"></div><div class="vbar-ag" style="width:${100-fp}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function selectP(id) {
+  document.querySelectorAll('.proposal-item').forEach((el,i)=>el.classList.toggle('sel',app.proposals[i]?.id===id));
+  document.getElementById('v-id').value=id; document.getElementById('e-id').value=id;
+  previewProposal(id,'vote'); previewProposal(id,'exec');
+}
+
+function previewProposal(id, which) {
+  const p=app.proposals.find(x=>x.id===parseInt(id));
+  if (which==='vote') {
+    const el=document.getElementById('vprev');
+    if (!p){el.classList.remove('show');return;}
+    el.classList.add('show');
+    document.getElementById('vprev-desc').textContent=p.description;
+    const sc={Active:'s-active',Executed:'s-executed',Defeated:'s-defeated'}[p.status];
+    document.getElementById('vprev-status').innerHTML=`<span class="pstatus ${sc}">${p.status}</span>`;
+    document.getElementById('vprev-for').textContent=p.votesFor.toLocaleString();
+    document.getElementById('vprev-ag').textContent=p.votesAgainst.toLocaleString();
+    document.getElementById('vprev-end').textContent=new Date(p.votingEndsAt*1000).toLocaleString('en-US');
+  } else {
+    const el=document.getElementById('eprev');
+    if (!p){el.classList.remove('show');return;}
+    el.classList.add('show');
+    document.getElementById('eprev-desc').textContent=p.description;
+    document.getElementById('eprev-dest').textContent=p.destination.toBase58().slice(0,8)+'...'+p.destination.toBase58().slice(-6);
+    document.getElementById('eprev-amount').textContent=(p.amount/LAMPORTS_PER_SOL).toFixed(6)+' SOL';
+    document.getElementById('eprev-for').textContent=p.votesFor.toLocaleString();
+    document.getElementById('eprev-ag').textContent=p.votesAgainst.toLocaleString();
+  }
+}
+
+async function sendTx(ix, label) {
+  if (!app.wallet){toast('Connect your wallet first','err');return null;}
+  const tid=Date.now(); logTx(tid,label,'pending',null);
+  try {
+    const tx=new Transaction().add(ix);
+    const {blockhash}=await app.conn.getLatestBlockhash();
+    tx.recentBlockhash=blockhash; tx.feePayer=app.wallet.publicKey;
+    const signed=await app.wallet.signTransaction(tx);
+    const sig=await app.conn.sendRawTransaction(signed.serialize());
+    await app.conn.confirmTransaction(sig,'confirmed');
+    logTx(tid,label,'ok',sig); toast(label+' confirmed!','ok'); return sig;
+  } catch(e) {
+    logTx(tid,label,'err',null);
+    toast('Error: '+(e.message.length>80?e.message.slice(0,80)+'...':e.message),'err');
+    console.error(label,e); return null;
+  }
+}
+
+async function doInitDao() {
+  if (!app.programId||!app.tokenMint){toast('Set Program ID and Token Mint first','err');return;}
+  const q=parseInt(document.getElementById('i-quorum').value);
+  const vp=parseInt(document.getElementById('i-period').value);
+  if (q<1||q>10000){toast('Quorum must be 1–10000','err');return;}
+  if (vp<3600){toast('Voting period minimum is 3600s (1h)','err');return;}
+  const [dp]=daoPDA(),[tp]=treasuryPDA();
+  const d=cat(await disc('initialize_dao'),B.u16(q),B.i64(vp));
+  const ix=new TransactionInstruction({programId:app.programId,keys:[
+    {pubkey:app.wallet.publicKey,   isSigner:true, isWritable:true},
+    {pubkey:app.tokenMint,          isSigner:false,isWritable:false},
+    {pubkey:dp,                     isSigner:false,isWritable:true},
+    {pubkey:tp,                     isSigner:false,isWritable:true},
+    {pubkey:SystemProgram.programId,isSigner:false,isWritable:false},
+  ],data:d});
+  const sig=await sendTx(ix,'Initialize DAO');
+  if (sig) await loadDAO();
+}
+
+async function doDeposit() {
+  if (!app.programId||!app.tokenMint){toast('Set Program ID and Token Mint first','err');return;}
+  const sol=parseFloat(document.getElementById('d-amount').value);
+  if (isNaN(sol)||sol<=0){toast('Invalid amount','err');return;}
+  const lamps=Math.floor(sol*LAMPORTS_PER_SOL);
+  const [dp]=daoPDA(),[tp]=treasuryPDA();
+  const d=cat(await disc('deposit'),B.u64(lamps));
+  const ix=new TransactionInstruction({programId:app.programId,keys:[
+    {pubkey:app.wallet.publicKey,   isSigner:true, isWritable:true},
+    {pubkey:dp,                     isSigner:false,isWritable:true},
+    {pubkey:tp,                     isSigner:false,isWritable:true},
+    {pubkey:SystemProgram.programId,isSigner:false,isWritable:false},
+  ],data:d});
+  const sig=await sendTx(ix,'Deposit '+sol+' SOL');
+  if (sig) {
+    const tbal=await app.conn.getBalance(tp);
+    renderTreasury(tbal);
+    document.getElementById('d-tbal').textContent=(tbal/LAMPORTS_PER_SOL).toFixed(6)+' SOL';
+    if (app.dao) await loadDAO();
+  }
+}
+
+async function doCreateProposal() {
+  if (!app.dao){toast('Load the DAO first','err');return;}
+  const description=document.getElementById('p-desc').value.trim();
+  const label=document.getElementById('p-label').value.trim();
+  const destStr=document.getElementById('p-dest').value.trim();
+  const sol=parseFloat(document.getElementById('p-amount').value);
+  if (!description){toast('Description is required','err');return;}
+  if (!label){toast('Destination label is required','err');return;}
+  if (!destStr){toast('Destination address is required','err');return;}
+  if (isNaN(sol)||sol<=0){toast('Invalid amount','err');return;}
+  let destPk; try{destPk=new PublicKey(destStr);}catch(e){toast('Invalid destination address','err');return;}
+  const lamps=Math.floor(sol*LAMPORTS_PER_SOL);
+  const [dp]=daoPDA(),[tp]=treasuryPDA();
+  const [pp]=proposalPDA(dp,app.dao.proposalCount);
+  const d=cat(await disc('create_proposal'),B.str(description),B.str(label),B.pk(destPk),B.u64(lamps));
+  const ix=new TransactionInstruction({programId:app.programId,keys:[
+    {pubkey:app.wallet.publicKey,   isSigner:true, isWritable:true},
+    {pubkey:dp,                     isSigner:false,isWritable:true},
+    {pubkey:tp,                     isSigner:false,isWritable:false},
+    {pubkey:pp,                     isSigner:false,isWritable:true},
+    {pubkey:SystemProgram.programId,isSigner:false,isWritable:false},
+  ],data:d});
+  const sig=await sendTx(ix,'Create Proposal');
+  if (sig) await loadDAO();
+}
+
+async function doVote(approve) {
+  if (!app.dao){toast('Load the DAO first','err');return;}
+  const id=parseInt(document.getElementById('v-id').value);
+  const [dp]=daoPDA();
+  const [pp]=proposalPDA(dp,id);
+  const [vr]=votePDA(pp,app.wallet.publicKey);
+  const voterAta=ata(app.wallet.publicKey);
+  const d=cat(await disc('cast_vote'),B.bool(approve));
+  const ix=new TransactionInstruction({programId:app.programId,keys:[
+    {pubkey:app.wallet.publicKey,   isSigner:true, isWritable:true},
+    {pubkey:dp,                     isSigner:false,isWritable:false},
+    {pubkey:pp,                     isSigner:false,isWritable:true},
+    {pubkey:voterAta,               isSigner:false,isWritable:false},
+    {pubkey:vr,                     isSigner:false,isWritable:true},
+    {pubkey:SystemProgram.programId,isSigner:false,isWritable:false},
+  ],data:d});
+  const sig=await sendTx(ix,(approve?'Vote FOR':'Vote AGAINST')+' #'+id);
+  if (sig) await loadDAO();
+}
+
+async function doExecute() {
+  if (!app.dao){toast('Load the DAO first','err');return;}
+  const id=parseInt(document.getElementById('e-id').value);
+  const proposal=app.proposals.find(p=>p.id===id);
+  if (!proposal){toast('Proposal not found — reload DAO','err');return;}
+  const [dp]=daoPDA(),[tp]=treasuryPDA();
+  const [pp]=proposalPDA(dp,id);
+  const d=await disc('execute_proposal');
+  const ix=new TransactionInstruction({programId:app.programId,keys:[
+    {pubkey:app.wallet.publicKey,   isSigner:true, isWritable:true},
+    {pubkey:dp,                     isSigner:false,isWritable:true},
+    {pubkey:app.tokenMint,          isSigner:false,isWritable:false},
+    {pubkey:tp,                     isSigner:false,isWritable:true},
+    {pubkey:pp,                     isSigner:false,isWritable:true},
+    {pubkey:proposal.destination,   isSigner:false,isWritable:true},
+    {pubkey:SystemProgram.programId,isSigner:false,isWritable:false},
+  ],data:d});
+  const sig=await sendTx(ix,'Execute Proposal #'+id);
+  if (sig) await loadDAO();
+}
+
+async function doAirdrop() {
+  if (!app.wallet){toast('Connect your wallet first','err');return;}
+  toast('Requesting 2 SOL airdrop...','info');
+  try {
+    const sig=await app.conn.requestAirdrop(app.wallet.publicKey,2*LAMPORTS_PER_SOL);
+    await app.conn.confirmTransaction(sig);
+    await refreshWalletBalance();
+    toast('2 SOL airdrop received!','ok');
+    logTx(Date.now(),'Airdrop 2 SOL','ok',sig);
+  } catch(e){toast('Airdrop failed (try faucet.solana.com): '+e.message,'err');}
+}
+
+async function loadTokenBalance() {
+  if (!app.wallet||!app.tokenMint) return;
+  try {
+    const info=await app.conn.getTokenAccountBalance(ata(app.wallet.publicKey));
+    document.getElementById('voter-bal').textContent=info.value.uiAmountString+' tokens';
+  } catch(e){ document.getElementById('voter-bal').textContent='0 (no token account)'; }
+}
+
+let logOpen=true;
+function logTx(id,label,status,sig) {
+  const idx=app.txLog.findIndex(t=>t.id===id);
+  const entry={id,label,status,sig};
+  if (idx>=0) app.txLog[idx]=entry;
+  else { app.txLog.unshift(entry); if(app.txLog.length>20) app.txLog.pop(); }
+  renderLog();
+}
+function renderLog() {
+  document.getElementById('tx-cnt').textContent=app.txLog.length;
+  const el=document.getElementById('tx-log-body');
+  if (!app.txLog.length){el.innerHTML='<div class="empty" style="padding:12px">No transactions yet</div>';return;}
+  el.innerHTML=app.txLog.map(t=>{
+    const ic=t.status==='ok'?'ico-ok':t.status==='err'?'ico-err':'ico-pend';
+    const sym=t.status==='ok'?'✓':t.status==='err'?'✗':'·';
+    const sigHtml=t.sig?`<a href="https://explorer.solana.com/tx/${t.sig}?cluster=devnet" target="_blank">${t.sig.slice(0,8)}...${t.sig.slice(-6)}</a>`:(t.status==='pending'?'<span class="spin"></span>':'');
+    return `<div class="tx-item"><div class="tx-ico ${ic}">${sym}</div><div class="tx-content"><div class="tx-name">${t.label}</div><div class="tx-sig">${sigHtml}</div></div></div>`;
+  }).join('');
+}
+function toggleLog() {
+  logOpen=!logOpen;
+  document.getElementById('tx-log-body').style.display=logOpen?'block':'none';
+  document.getElementById('log-arrow').textContent=logOpen?'▲':'▼';
+}
+
+function tab(name,btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name==='vote') loadTokenBalance();
+}
+
+function toast(msg,type='ok') {
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className='toast '+(type==='ok'?'t-ok':type==='err'?'t-err':'t-info');
+  el.textContent=msg; c.appendChild(el); setTimeout(()=>el.remove(),4000);
+}
+
+function fmtDur(s) { if(s>=86400) return (s/86400).toFixed(1)+'d'; if(s>=3600) return (s/3600).toFixed(1)+'h'; return s+'s'; }
+function fmtTimeLeft(date) { const d=date-new Date(); if(d<=0) return 'ended'; const h=Math.floor(d/3.6e6),m=Math.floor((d%3.6e6)/60000); return h>0?`in ${h}h${m}m`:`in ${m}m`; }
+
+window.addEventListener('load',()=>{ const p=window.phantom?.solana||window.solana; if(p?.isConnected) connectWallet(); });
+</script>
+</body>
+</html>
